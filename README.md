@@ -2,6 +2,12 @@
 
 An ansible playbook to quickly set up [Wireguard](https://www.wireguard.com/) server for occasional personal use. It takes around five minutes to set this up. Spin up a VM, run the playbook, do your business and delete the VM.
 
+<div style="text-align:center;">
+<img src="vpn.jpg" style="max-width: 720px;">
+
+*https://pixabay.com/illustrations/map-world-vpn-international-4636843/*
+</div>
+
 ## Setup
 - Create a vm at your desired location from your favorite provider
   - I have tested with a $5 DigitalOcean droplet with Ubuntu 20.04 LTS
