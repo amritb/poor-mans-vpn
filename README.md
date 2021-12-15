@@ -26,6 +26,7 @@ pip install -r requirements.txt
 deactivate
 ```
 ## Run the playbook
+*Make sure your wireguard connection is deactivated*
 ```
 source venv/bin/activate
 ansible-playbook -i <server public ip>, -u <server username> playbook.yaml
