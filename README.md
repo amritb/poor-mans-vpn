@@ -2,7 +2,7 @@
 
 An ansible playbook to quickly set up [Wireguard](https://www.wireguard.com/) server for occasional personal use. It takes around five minutes to set this up. Spin up a VM, run the playbook, do your business and delete the VM.
 
-Motivation: Lately due to GDPR many websites are blocking access in the EU. For me, I cannot order medicines for my parents back home via netmeds.com or book flights/hotels via makemytrip.com (as of December 2021). With wireguard and this playbook it becomes trivial to perform these tasks for very little cost.
+Motivation: Lately due to GDPR many websites are blocking access in the EU. For me, I cannot order medicines back home via netmeds.com or book flights/hotels via makemytrip.com (as of December 2021). With wireguard and this playbook it becomes trivial to perform these tasks for very little cost.
 
 <div style="text-align:center;">
 <img src="vpn.jpg" style="max-width: 720px;">
