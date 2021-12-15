@@ -1,0 +1,92 @@
+---
+- name: Wireguard server setup
+  hosts: all
+
+  vars_prompt:
+    - name: client_public_key
+      prompt: Client public key
+      private: no
+
+    - name: allowed_ips
+      prompt: Allowed IPs
+      private: no
+      default: "10.0.0.3"
+
+    - name: wg_listen_port
+      prompt: Wireguard listen port
+      private: no
+      default: "51820"
+
+  tasks:
+    - name: apt update
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install wireguard
+      apt:
+        name: wireguard
+
+    - name: wg0 down in case it's up
+      ansible.builtin.shell: wg-quick down wg0
+      ignore_errors: yes
+
+    - name: Create wireguard keys directory
+      ansible.builtin.file:
+        path: /etc/wireguard/keys
+        state: directory
+
+    - name: Create wg server and client keys
+      ansible.builtin.shell: wg genkey | sudo tee /etc/wireguard/keys/server.key | wg pubkey | sudo tee /etc/wireguard/keys/server.key.pub
+
+    - name: Get server key
+      ansible.builtin.shell: cat /etc/wireguard/keys/server.key
+      register: server_key
+
+    - name: Create wg0.conf from template
+      ansible.builtin.template:
+        src: wg0.conf.j2
+        dest: /etc/wireguard/wg0.conf
+
+    - name: chmod for wg0 and server.key
+      ansible.builtin.file:
+        mode: "0600"
+        path: "{{ item }}"
+      loop:
+        - /etc/wireguard/wg0.conf
+        - /etc/wireguard/keys/server.key
+
+    - name: Start wireguard interface
+      ansible.builtin.shell: wg-quick up wg0
+
+    - name: Start wireguard on boot
+      ansible.builtin.systemd:
+        name: wg-quick@wg0
+        enabled: yes
+
+    - name: Allowing traffic forwarding
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        state: present
+
+    - name: Open ports wg_listen_port and 22
+      community.general.ufw:
+        rule: allow
+        state: reloaded
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+      loop:
+        - { port: "{{ wg_listen_port }}", proto: "udp" }
+        - { port: "22", proto: "tcp" }
+
+    - name: Configure client
+      ansible.builtin.shell: wg set wg0 peer {{ client_public_key }} allowed-ips {{ allowed_ips }}
+
+    - name: Server public key
+      ansible.builtin.shell: cat /etc/wireguard/keys/server.key.pub
+      register: server_public_key
+
+    - name: Print server public key
+      ansible.builtin.debug:
+        var: server_public_key.stdout
