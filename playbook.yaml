@@ -19,11 +19,14 @@
 
   tasks:
     - name: apt update
+      become: true
       apt:
         update_cache: yes
         cache_valid_time: 3600
 
+
     - name: Install wireguard
+      become: true
       apt:
         name: wireguard
 
@@ -32,6 +35,7 @@
       ignore_errors: yes
 
     - name: Create wireguard keys directory
+      become: true
       ansible.builtin.file:
         path: /etc/wireguard/keys
         state: directory
@@ -40,15 +44,22 @@
       ansible.builtin.shell: wg genkey | sudo tee /etc/wireguard/keys/server.key | wg pubkey | sudo tee /etc/wireguard/keys/server.key.pub
 
     - name: Get server key
+      become: true
       ansible.builtin.shell: cat /etc/wireguard/keys/server.key
       register: server_key
 
+    - name: Get interface
+      ansible.builtin.shell: ip -o -4 route show to default | awk '{print $5}'
+      register: interface
+
     - name: Create wg0.conf from template
+      become: true
       ansible.builtin.template:
         src: wg0.conf.j2
         dest: /etc/wireguard/wg0.conf
 
     - name: chmod for wg0 and server.key
+      become: true
       ansible.builtin.file:
         mode: "0600"
         path: "{{ item }}"
@@ -57,20 +68,24 @@
         - /etc/wireguard/keys/server.key
 
     - name: Start wireguard interface
+      become: true
       ansible.builtin.shell: wg-quick up wg0
 
     - name: Start wireguard on boot
+      become: true
       ansible.builtin.systemd:
         name: wg-quick@wg0
         enabled: yes
 
     - name: Allowing traffic forwarding
+      become: true
       ansible.posix.sysctl:
         name: net.ipv4.ip_forward
         value: "1"
         state: present
 
     - name: Open ports wg_listen_port and 22
+      become: true
       community.general.ufw:
         rule: allow
         state: reloaded
@@ -81,12 +96,15 @@
         - { port: "22", proto: "tcp" }
 
     - name: Configure client
+      become: true
       ansible.builtin.shell: wg set wg0 peer {{ client_public_key }} allowed-ips {{ allowed_ips }}
 
     - name: Server public key
+      become: true
       ansible.builtin.shell: cat /etc/wireguard/keys/server.key.pub
       register: server_public_key
 
     - name: Print server public key
       ansible.builtin.debug:
         var: server_public_key.stdout
+

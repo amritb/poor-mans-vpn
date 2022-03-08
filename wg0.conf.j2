@@ -1,0 +1,7 @@
+[Interface]
+Address = 10.0.0.1/24
+SaveConfig = true
+ListenPort = {{ wg_listen_port }}
+PrivateKey = {{ server_key.stdout }}
+PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o {{ interface.stdout }} -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o {{ interface.stdout }} -j MASQUERADE
