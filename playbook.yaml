@@ -42,6 +42,8 @@
 
     - name: Create wg server and client keys
       ansible.builtin.shell: wg genkey | sudo tee /etc/wireguard/keys/server.key | wg pubkey | sudo tee /etc/wireguard/keys/server.key.pub
+      args:
+        creates: /etc/wireguard/keys/server.key.pub
 
     - name: Get server key
       become: true
